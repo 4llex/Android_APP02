@@ -20,8 +20,8 @@ public class MainActivity extends AppCompatActivity {
 
     private ViewHolder mViewHolder = new ViewHolder();
     private Runnable mRunnable;
-    // Lida com a thread
-    //private Handler mHandler = new Handler(Looper.getMainLooper());
+    private Handler mHandler = new Handler(Looper.getMainLooper());
+    private boolean mTicker = false;
 
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -41,9 +41,6 @@ public class MainActivity extends AppCompatActivity {
         this.mViewHolder.textSeconds = findViewById(R.id.text_seconds);
         this.mViewHolder.textBattery = findViewById(R.id.textBattery);
 
-        this.registerReceiver(this.mReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-
-        this.startClock();
 
     }
 
@@ -56,12 +53,16 @@ public class MainActivity extends AppCompatActivity {
         final Calendar calendar = Calendar.getInstance();
 
         // Lida com a thread
-        final Handler mHandler = new Handler(Looper.getMainLooper());
+        //final Handler mHandler = new Handler(Looper.getMainLooper());
 
         // Inicializa thread
         this.mRunnable = new Runnable() {
             @Override
             public void run() {
+
+                if (!mTicker){
+                    return;
+                }
 
                 // Obtém o tempo do celular e atribui ao calendário criado
                 calendar.setTimeInMillis(System.currentTimeMillis());
@@ -84,6 +85,22 @@ public class MainActivity extends AppCompatActivity {
 
         // Faz com que a thread rode pela primeira vez
         this.mRunnable.run();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        this.mTicker = true;
+        this.startClock();
+        this.registerReceiver(this.mReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        this.mTicker = false;
+        this.unregisterReceiver(this.mReceiver);
     }
 
     private static class ViewHolder {
